@@ -1,21 +1,54 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubit/recipe/recipe_cubit.dart';
+import '../cubit/recipe/recipe_state.dart';
 import '../models/recipe.dart';
 import '../widgets/recipe_card.dart';
 import 'recipe_detail_screen.dart';
+import 'add_edit_recipe_screen.dart';
 
 class CategoryRecipesScreen extends StatelessWidget {
   final String categoryName;
-  final List<Recipe> recipes;
-  final Function(String) onDelete;
-  final Function(Recipe) onEdit;
 
   const CategoryRecipesScreen({
     super.key,
     required this.categoryName,
-    required this.recipes,
-    required this.onDelete,
-    required this.onEdit,
   });
+
+  Future<void> _editRecipe(BuildContext context, Recipe recipe) async {
+    final updatedRecipe = await Navigator.push<Recipe>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddEditRecipeScreen(existingRecipe: recipe),
+      ),
+    );
+    if (updatedRecipe != null && context.mounted) {
+      context.read<RecipeCubit>().updateRecipe(updatedRecipe);
+    }
+  }
+
+  void _deleteRecipe(BuildContext context, String id) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Recipe'),
+        content: const Text('Are you sure you want to delete this recipe?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              context.read<RecipeCubit>().deleteRecipe(id);
+              Navigator.pop(ctx);
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,47 +63,60 @@ class CategoryRecipesScreen extends StatelessWidget {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: recipes.isEmpty
-          ? Center(
+      body: BlocBuilder<RecipeCubit, RecipeState>(
+        builder: (context, state) {
+          final recipes = state.recipes
+              .where((r) => r.category == categoryName)
+              .toList();
+
+          if (recipes.isEmpty) {
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.restaurant, size: 80, color: Colors.grey.shade300),
+                  Icon(Icons.restaurant,
+                      size: 80, color: Colors.grey.shade300),
                   const SizedBox(height: 16),
                   Text(
                     'No recipes in $categoryName yet',
-                    style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
+                    style: TextStyle(
+                        fontSize: 16, color: Colors.grey.shade500),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Add one from the home screen!',
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade400),
+                    style: TextStyle(
+                        fontSize: 14, color: Colors.grey.shade400),
                   ),
                 ],
               ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: recipes.length,
-              itemBuilder: (context, index) {
-                final recipe = recipes[index];
-                return RecipeCard(
-                  recipe: recipe,
-                  onDelete: () => onDelete(recipe.id),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => RecipeDetailScreen(
-                          recipe: recipe,
-                          onEdit: () => onEdit(recipe),
-                        ),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: recipes.length,
+            itemBuilder: (context, index) {
+              final recipe = recipes[index];
+              return RecipeCard(
+                recipe: recipe,
+                onDelete: () => _deleteRecipe(context, recipe.id),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => RecipeDetailScreen(
+                        recipe: recipe,
+                        onEdit: () => _editRecipe(context, recipe),
                       ),
-                    );
-                  },
-                );
-              },
-            ),
+                    ),
+                  );
+                },
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }
