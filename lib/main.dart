@@ -1,10 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'cubit/login/login_cubit.dart';
 import 'cubit/recipe/recipe_cubit.dart';
+import 'models/recipe.dart';
 import 'screens/login_screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  Hive.registerAdapter(RecipeAdapter());
+  try {
+    await Hive.openBox<Recipe>('recipes', crashRecovery: true);
+  } catch (_) {
+    try {
+      await Hive.deleteBoxFromDisk('recipes');
+    } catch (_) {}
+    await Hive.openBox<Recipe>('recipes', crashRecovery: true);
+  }
   runApp(const RecipeApp());
 }
 
