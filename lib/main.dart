@@ -7,6 +7,7 @@ import 'models/app_user.dart';
 import 'models/recipe.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
+import 'theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,15 +61,9 @@ class RecipeApp extends StatelessWidget {
         BlocProvider(create: (_) => RecipeCubit()),
       ],
       child: MaterialApp(
-        title: 'Recipe App',
+        title: 'CookCraft',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.orange,
-            brightness: Brightness.light,
-          ),
-          useMaterial3: true,
-        ),
+        theme: AppTheme.light(),
         home: startScreen,
       ),
     );

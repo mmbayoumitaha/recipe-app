@@ -10,10 +10,7 @@ import 'add_edit_recipe_screen.dart';
 class CategoryRecipesScreen extends StatelessWidget {
   final String categoryName;
 
-  const CategoryRecipesScreen({
-    super.key,
-    required this.categoryName,
-  });
+  const CategoryRecipesScreen({super.key, required this.categoryName});
 
   Future<void> _editRecipe(BuildContext context, Recipe recipe) async {
     final updatedRecipe = await Navigator.push<Recipe>(
@@ -52,15 +49,17 @@ class CategoryRecipesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           categoryName,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.orange.shade600,
-        foregroundColor: Colors.white,
+        backgroundColor: scheme.primary,
+        foregroundColor: scheme.onPrimary,
         elevation: 0,
       ),
       body: BlocBuilder<RecipeCubit, RecipeState>(
@@ -74,19 +73,26 @@ class CategoryRecipesScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.restaurant,
-                      size: 80, color: Colors.grey.shade300),
+                  Icon(
+                    Icons.restaurant,
+                    size: 80,
+                    color: scheme.onSurface.withValues(alpha: 0.2),
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     'No recipes in $categoryName yet',
                     style: TextStyle(
-                        fontSize: 16, color: Colors.grey.shade500),
+                      fontSize: 16,
+                      color: scheme.onSurface.withValues(alpha: 0.65),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Add one from the home screen!',
                     style: TextStyle(
-                        fontSize: 14, color: Colors.grey.shade400),
+                      fontSize: 14,
+                      color: scheme.onSurface.withValues(alpha: 0.5),
+                    ),
                   ),
                 ],
               ),

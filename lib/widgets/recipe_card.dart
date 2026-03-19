@@ -15,6 +15,8 @@ class RecipeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -159,15 +161,17 @@ class RecipeCard extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.orange.shade50,
+                            color: scheme.primary.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.orange.shade200),
+                            border: Border.all(
+                              color: scheme.primary.withValues(alpha: 0.22),
+                            ),
                           ),
                           child: Text(
                             tag,
                             style: TextStyle(
                               fontSize: 11,
-                              color: Colors.orange.shade800,
+                              color: scheme.primary,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
