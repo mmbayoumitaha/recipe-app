@@ -15,8 +15,6 @@ class RecipeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -35,153 +33,171 @@ class RecipeCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Stack(
-              children: [
-                Hero(
-                  tag: 'recipe-image-${recipe.id}',
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(20),
-                    ),
-                    child: Image.network(
-                      recipe.imageUrl,
-                      height: 180,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(
-                          height: 180,
-                          color: Colors.grey.shade200,
-                          child: const Center(
-                            child: CircularProgressIndicator(
-                              color: Colors.orange,
-                            ),
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          height: 180,
-                          color: Colors.grey.shade200,
-                          child: const Center(
-                            child: Icon(
-                              Icons.restaurant,
-                              size: 60,
-                              color: Colors.orange,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.timer_outlined,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${recipe.prepTimeMinutes} min',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                if (onDelete != null)
-                  Positioned(
-                    top: 12,
-                    left: 12,
-                    child: GestureDetector(
-                      onTap: onDelete,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.delete_outline,
-                          color: Colors.white,
-                          size: 18,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    recipe.name,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    recipe.category,
-                    style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-                  ),
-                  const SizedBox(height: 8),
-                  if (recipe.tags.isNotEmpty)
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      children: recipe.tags.map((tag) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: scheme.primary.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: scheme.primary.withValues(alpha: 0.22),
-                            ),
-                          ),
-                          child: Text(
-                            tag,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: scheme.primary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                ],
+            _RecipeImageOverlay(recipe: recipe, onDelete: onDelete),
+            _RecipeInfoSection(recipe: recipe),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RecipeImageOverlay extends StatelessWidget {
+  final Recipe recipe;
+  final VoidCallback? onDelete;
+
+  const _RecipeImageOverlay({required this.recipe, this.onDelete});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Stack(
+      children: [
+        Hero(
+          tag: 'recipe-image-${recipe.id}',
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            child: Image.network(
+              recipe.imageUrl,
+              height: 180,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                height: 180,
+                color: scheme.primaryContainer,
+                child: Icon(Icons.restaurant, size: 60, color: scheme.primary),
               ),
             ),
-          ],
+          ),
+        ),
+        Positioned(
+          top: 12,
+          right: 12,
+          child: _Badge(
+            icon: Icons.timer_outlined,
+            label: '${recipe.prepTimeMinutes} min',
+          ),
+        ),
+        if (onDelete != null)
+          Positioned(
+            top: 12,
+            left: 12,
+            child: GestureDetector(
+              onTap: onDelete,
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.delete_outline,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _RecipeInfoSection extends StatelessWidget {
+  final Recipe recipe;
+
+  const _RecipeInfoSection({required this.recipe});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            recipe.name,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            recipe.category,
+            style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+          ),
+          const SizedBox(height: 8),
+          if (recipe.tags.isNotEmpty)
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: recipe.tags.map((tag) => _TagChip(tag: tag, scheme: scheme)).toList(),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Badge extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _Badge({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.black54,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white, size: 16),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TagChip extends StatelessWidget {
+  final String tag;
+  final ColorScheme scheme;
+
+  const _TagChip({required this.tag, required this.scheme});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: scheme.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.primary.withValues(alpha: 0.22)),
+      ),
+      child: Text(
+        tag,
+        style: TextStyle(
+          fontSize: 11,
+          color: scheme.primary,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );

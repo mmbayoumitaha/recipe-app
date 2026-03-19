@@ -4,6 +4,7 @@ import '../cubit/recipe/recipe_cubit.dart';
 import '../cubit/recipe/recipe_state.dart';
 import '../models/recipe.dart';
 import '../widgets/recipe_card.dart';
+import '../widgets/common/empty_recipes_state.dart';
 import 'recipe_detail_screen.dart';
 import 'add_edit_recipe_screen.dart';
 
@@ -12,7 +13,7 @@ class CategoryRecipesScreen extends StatelessWidget {
 
   const CategoryRecipesScreen({super.key, required this.categoryName});
 
-  Future<void> _editRecipe(BuildContext context, Recipe recipe) async {
+  void _onEdit(BuildContext context, Recipe recipe) async {
     final updatedRecipe = await Navigator.push<Recipe>(
       context,
       MaterialPageRoute(
@@ -24,7 +25,7 @@ class CategoryRecipesScreen extends StatelessWidget {
     }
   }
 
-  void _deleteRecipe(BuildContext context, String id) {
+  void _onDelete(BuildContext context, String id) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -39,6 +40,7 @@ class CategoryRecipesScreen extends StatelessWidget {
             onPressed: () {
               context.read<RecipeCubit>().deleteRecipe(id);
               Navigator.pop(ctx);
+              Navigator.pop(context);
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
@@ -52,15 +54,10 @@ class CategoryRecipesScreen extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text(
-          categoryName,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: Text(categoryName),
         backgroundColor: scheme.primary,
         foregroundColor: scheme.onPrimary,
-        elevation: 0,
       ),
       body: BlocBuilder<RecipeCubit, RecipeState>(
         builder: (context, state) {
@@ -69,33 +66,9 @@ class CategoryRecipesScreen extends StatelessWidget {
               .toList();
 
           if (recipes.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.restaurant,
-                    size: 80,
-                    color: scheme.onSurface.withValues(alpha: 0.2),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No recipes in $categoryName yet',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: scheme.onSurface.withValues(alpha: 0.65),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Add one from the home screen!',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: scheme.onSurface.withValues(alpha: 0.5),
-                    ),
-                  ),
-                ],
-              ),
+            return EmptyRecipesState(
+              title: 'No recipes in $categoryName yet',
+              subtitle: 'Start adding your culinary creations!',
             );
           }
 
@@ -106,14 +79,14 @@ class CategoryRecipesScreen extends StatelessWidget {
               final recipe = recipes[index];
               return RecipeCard(
                 recipe: recipe,
-                onDelete: () => _deleteRecipe(context, recipe.id),
+                onDelete: () => _onDelete(context, recipe.id),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => RecipeDetailScreen(
                         recipe: recipe,
-                        onEdit: () => _editRecipe(context, recipe),
+                        onEdit: () => _onEdit(context, recipe),
                       ),
                     ),
                   );
