@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubit/login/login_cubit.dart';
 import '../cubit/recipe/recipe_cubit.dart';
 import '../cubit/recipe/recipe_state.dart';
 import '../data/dummy_data.dart';
@@ -9,6 +10,7 @@ import '../widgets/recipe_card.dart';
 import 'category_recipes_screen.dart';
 import 'recipe_detail_screen.dart';
 import 'add_edit_recipe_screen.dart';
+import 'login_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -70,6 +72,20 @@ class HomeScreen extends StatelessWidget {
         backgroundColor: Colors.orange.shade600,
         foregroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          IconButton(
+            onPressed: () async {
+              await context.read<LoginCubit>().logout();
+              if (context.mounted) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                );
+              }
+            },
+            icon: const Icon(Icons.logout),
+          ),
+        ],
       ),
       body: BlocBuilder<RecipeCubit, RecipeState>(
         builder: (context, state) {
@@ -88,16 +104,14 @@ class HomeScreen extends StatelessWidget {
                     },
                     decoration: InputDecoration(
                       hintText: 'Search recipes...',
-                      prefixIcon:
-                          const Icon(Icons.search, color: Colors.grey),
+                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
                       filled: true,
                       fillColor: Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                         borderSide: BorderSide.none,
                       ),
-                      contentPadding:
-                          const EdgeInsets.symmetric(vertical: 0),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
                     ),
                   ),
                 ),
@@ -117,14 +131,12 @@ class HomeScreen extends StatelessWidget {
                     height: 120,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                       itemCount: categories.length,
                       itemBuilder: (context, index) {
                         final cat = categories[index];
                         return Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
                           child: SizedBox(
                             width: 110,
                             child: CategoryCard(
@@ -133,12 +145,9 @@ class HomeScreen extends StatelessWidget {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) =>
-                                        BlocProvider.value(
-                                      value: context
-                                          .read<RecipeCubit>(),
-                                      child:
-                                          CategoryRecipesScreen(
+                                    builder: (_) => BlocProvider.value(
+                                      value: context.read<RecipeCubit>(),
+                                      child: CategoryRecipesScreen(
                                         categoryName: cat.name,
                                       ),
                                     ),
@@ -153,8 +162,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ],
                 Padding(
-                  padding:
-                      const EdgeInsets.fromLTRB(16, 20, 16, 10),
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
                   child: Text(
                     state.searchQuery.isEmpty
                         ? 'All Recipes'
@@ -172,13 +180,11 @@ class HomeScreen extends StatelessWidget {
                     child: Center(
                       child: Column(
                         children: [
-                          Icon(Icons.search_off,
-                              size: 60, color: Colors.grey),
+                          Icon(Icons.search_off, size: 60, color: Colors.grey),
                           SizedBox(height: 10),
                           Text(
                             'No recipes found',
-                            style: TextStyle(
-                                fontSize: 16, color: Colors.grey),
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
                           ),
                         ],
                       ),
@@ -188,23 +194,20 @@ class HomeScreen extends StatelessWidget {
                   ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: filteredRecipes.length,
                     itemBuilder: (context, index) {
                       final recipe = filteredRecipes[index];
                       return RecipeCard(
                         recipe: recipe,
-                        onDelete: () =>
-                            _deleteRecipe(context, recipe.id),
+                        onDelete: () => _deleteRecipe(context, recipe.id),
                         onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (_) => RecipeDetailScreen(
                                 recipe: recipe,
-                                onEdit: () =>
-                                    _editRecipe(context, recipe),
+                                onEdit: () => _editRecipe(context, recipe),
                               ),
                             ),
                           );
