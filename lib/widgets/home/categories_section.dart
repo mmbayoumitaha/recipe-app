@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../cubit/recipe/recipe_cubit.dart';
-import '../../data/dummy_data.dart';
+import '../../data/constants/app_categories.dart';
 import '../../screens/category_recipes_screen.dart';
 import '../category_card.dart';
 
@@ -10,54 +10,60 @@ class CategoriesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16, 20, 16, 10),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
           child: Text(
             'Categories',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: scheme.onSurface,
             ),
           ),
         ),
-        SizedBox(
-          height: 120,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            itemCount: categories.length,
-            itemBuilder: (context, index) {
-              final cat = categories[index];
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: SizedBox(
-                  width: 110,
-                  child: CategoryCard(
-                    category: cat,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => BlocProvider.value(
-                            value: context.read<RecipeCubit>(),
-                            child: CategoryRecipesScreen(
-                              categoryName: cat.name,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
+        _buildCategoryList(context),
       ],
+    );
+  }
+
+  Widget _buildCategoryList(BuildContext context) {
+    return SizedBox(
+      height: 125,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        itemCount: globalAppCategories.length,
+        itemBuilder: (context, index) {
+          final category = globalAppCategories[index];
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: SizedBox(
+              width: 115,
+              child: CategoryCard(
+                category: category,
+                onTap: () => _navigateToCategory(context, category.name),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _navigateToCategory(BuildContext context, String categoryName) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BlocProvider.value(
+          value: context.read<RecipeCubit>(),
+          child: CategoryRecipesScreen(categoryName: categoryName),
+        ),
+      ),
     );
   }
 }

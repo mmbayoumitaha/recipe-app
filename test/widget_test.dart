@@ -1,13 +1,20 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:recipe_app/main.dart';
-import 'package:recipe_app/screens/login_screen.dart';
+import 'package:recipe_app/data/repositories/auth_repository.dart';
+import 'package:recipe_app/data/repositories/recipe_repository.dart';
 
 void main() {
-  testWidgets('App launches successfully', (WidgetTester tester) async {
-    // Build the app and trigger a frame.
-    await tester.pumpWidget(const RecipeApp(startScreen: LoginScreen()));
+  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+    final authRepo = AuthRepository();
+    final recipeRepo = RecipeRepository();
 
-    // Verify that the login screen is displayed
-    expect(find.text('Recipe App'), findsOneWidget);
+    await tester.pumpWidget(RecipeApp(
+      startScreen: const Scaffold(),
+      authRepository: authRepo,
+      recipeRepository: recipeRepo,
+    ));
+
+    expect(find.text('CookCraft'), findsOneWidget);
   });
 }

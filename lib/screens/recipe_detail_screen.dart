@@ -6,11 +6,13 @@ import '../widgets/recipe_detail/recipe_detail_info.dart';
 class RecipeDetailScreen extends StatelessWidget {
   final Recipe recipe;
   final VoidCallback onEdit;
+  final String heroTag;
 
   const RecipeDetailScreen({
     super.key,
     required this.recipe,
     required this.onEdit,
+    required this.heroTag,
   });
 
   @override
@@ -18,7 +20,7 @@ class RecipeDetailScreen extends StatelessWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          RecipeImageSliver(recipe: recipe, onEdit: onEdit),
+          RecipeImageSliver(recipe: recipe, onEdit: onEdit, heroTag: heroTag),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(20),

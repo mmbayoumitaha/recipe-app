@@ -8,13 +8,13 @@ class HomeSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final isDark = scheme.brightness == Brightness.dark;
+
     return Container(
-      color: scheme.primary,
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+      color: isDark ? Colors.transparent : scheme.primary,
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
       child: TextField(
-        onChanged: (value) {
-          context.read<RecipeCubit>().updateSearchQuery(value);
-        },
+        onChanged: (value) => context.read<RecipeCubit>().updateSearchQuery(value),
         decoration: InputDecoration(
           hintText: 'Search recipes...',
           prefixIcon: Icon(
@@ -22,7 +22,7 @@ class HomeSearchBar extends StatelessWidget {
             color: scheme.onSurface.withValues(alpha: 0.6),
           ),
           filled: true,
-          fillColor: scheme.surface,
+          fillColor: isDark ? scheme.surface : Colors.white,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide.none,

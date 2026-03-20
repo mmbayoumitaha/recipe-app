@@ -1,83 +1,97 @@
 import 'package:flutter/material.dart';
 
-import 'app_colors.dart';
+class AppColors {
+  static const Color primary = Color(0xFFFF7043);
+  static const Color secondary = Color(0xFFFF8A65);
+  static const Color surface = Colors.white;
+  static const Color background = Color(0xFFFBFBFB);
+  static const Color text = Color(0xFF2D2D2D);
+  static const Color onPrimary = Colors.white;
+}
 
 class AppTheme {
   static ThemeData light() {
-    final colorScheme = ColorScheme(
-      brightness: Brightness.light,
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: AppColors.primary,
       primary: AppColors.primary,
-      onPrimary: AppColors.onPrimary,
       secondary: AppColors.secondary,
-      onSecondary: AppColors.onSecondary,
-      error: const Color(0xFFB00020),
-      onError: Colors.white,
       surface: AppColors.surface,
       onSurface: AppColors.text,
+      brightness: Brightness.light,
     );
 
+    return _baseTheme(colorScheme).copyWith(
+      scaffoldBackgroundColor: AppColors.background,
+      appBarTheme: _baseAppBar(colorScheme).copyWith(
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
+      ),
+    );
+  }
+
+  static ThemeData dark() {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: AppColors.primary,
+      primary: AppColors.primary,
+      secondary: AppColors.secondary,
+      surface: const Color(0xFF1E1E1E),
+      onSurface: Colors.white,
+      brightness: Brightness.dark,
+    );
+
+    return _baseTheme(colorScheme).copyWith(
+      scaffoldBackgroundColor: const Color(0xFF121212),
+      appBarTheme: _baseAppBar(colorScheme).copyWith(
+        backgroundColor: const Color(0xFF1E1E1E),
+        foregroundColor: Colors.white,
+      ),
+    );
+  }
+
+  static ThemeData _baseTheme(ColorScheme scheme) {
     return ThemeData(
       useMaterial3: true,
-      colorScheme: colorScheme,
-      scaffoldBackgroundColor: AppColors.background,
-      appBarTheme: AppBarTheme(
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
+      colorScheme: scheme,
+      cardTheme: CardThemeData(
+        color: scheme.surface,
         elevation: 0,
-        centerTitle: false,
-        titleTextStyle: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
-          textStyle: const TextStyle(fontWeight: FontWeight.w700),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-      ),
-      textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: colorScheme.secondary,
-          textStyle: const TextStyle(fontWeight: FontWeight.w700),
+          backgroundColor: scheme.primary,
+          foregroundColor: scheme.onPrimary,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          elevation: 0,
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: colorScheme.surface,
+        fillColor: scheme.surface,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: colorScheme.primary, width: 2),
+          borderSide: BorderSide(color: scheme.primary, width: 1.5),
         ),
       ),
-      chipTheme: ChipThemeData(
-        backgroundColor: colorScheme.primary.withValues(alpha: 0.08),
-        selectedColor: colorScheme.primary.withValues(alpha: 0.18),
-        side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.22)),
-        labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(999),
-        ),
-      ),
-      snackBarTheme: SnackBarThemeData(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.text,
-        contentTextStyle: const TextStyle(color: Colors.white),
+    );
+  }
+
+  static AppBarTheme _baseAppBar(ColorScheme scheme) {
+    return const AppBarTheme(
+      elevation: 0,
+      centerTitle: false,
+      titleTextStyle: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
       ),
     );
   }

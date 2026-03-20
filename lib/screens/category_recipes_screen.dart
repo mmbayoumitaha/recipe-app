@@ -77,9 +77,13 @@ class CategoryRecipesScreen extends StatelessWidget {
             itemCount: recipes.length,
             itemBuilder: (context, index) {
               final recipe = recipes[index];
+              final heroTag = 'recipe-image-${recipe.id}-cat';
               return RecipeCard(
                 recipe: recipe,
+                isFavorite: state.favoriteIds.contains(recipe.id),
                 onDelete: () => _onDelete(context, recipe.id),
+                onFavorite: () => context.read<RecipeCubit>().toggleFavorite(recipe.id),
+                heroSuffix: '-cat',
                 onTap: () {
                   Navigator.push(
                     context,
@@ -87,6 +91,7 @@ class CategoryRecipesScreen extends StatelessWidget {
                       builder: (_) => RecipeDetailScreen(
                         recipe: recipe,
                         onEdit: () => _onEdit(context, recipe),
+                        heroTag: heroTag,
                       ),
                     ),
                   );
@@ -94,6 +99,7 @@ class CategoryRecipesScreen extends StatelessWidget {
               );
             },
           );
+
         },
       ),
     );

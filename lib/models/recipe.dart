@@ -9,6 +9,7 @@ class Recipe {
   final String instructions;
   final List<String> tags;
   final int prepTimeMinutes;
+  final String? creatorEmail;
 
   Recipe({
     required this.id,
@@ -19,6 +20,7 @@ class Recipe {
     required this.instructions,
     this.tags = const [],
     this.prepTimeMinutes = 30,
+    this.creatorEmail,
   });
 
   Recipe copyWith({
@@ -30,6 +32,7 @@ class Recipe {
     String? instructions,
     List<String>? tags,
     int? prepTimeMinutes,
+    String? creatorEmail,
   }) {
     return Recipe(
       id: id ?? this.id,
@@ -40,6 +43,7 @@ class Recipe {
       instructions: instructions ?? this.instructions,
       tags: tags ?? this.tags,
       prepTimeMinutes: prepTimeMinutes ?? this.prepTimeMinutes,
+      creatorEmail: creatorEmail ?? this.creatorEmail,
     );
   }
 }
@@ -58,6 +62,7 @@ class RecipeAdapter extends TypeAdapter<Recipe> {
     final instructions = reader.readString();
     final tags = (reader.readList()).cast<String>();
     final prepTimeMinutes = reader.readInt();
+    final creatorEmail = reader.readString();
 
     return Recipe(
       id: id,
@@ -68,6 +73,7 @@ class RecipeAdapter extends TypeAdapter<Recipe> {
       instructions: instructions,
       tags: tags,
       prepTimeMinutes: prepTimeMinutes,
+      creatorEmail: creatorEmail.isEmpty ? null : creatorEmail,
     );
   }
 
@@ -81,5 +87,8 @@ class RecipeAdapter extends TypeAdapter<Recipe> {
     writer.writeString(obj.instructions);
     writer.writeList(obj.tags);
     writer.writeInt(obj.prepTimeMinutes);
+    writer.writeString(obj.creatorEmail ?? '');
   }
 }
+
+

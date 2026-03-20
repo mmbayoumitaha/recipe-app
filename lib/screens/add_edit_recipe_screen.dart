@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/recipe.dart';
-import '../data/dummy_data.dart';
+import '../data/constants/app_categories.dart';
 import '../widgets/recipe_form/recipe_input_field.dart';
 import '../widgets/recipe_form/ingredients_editor.dart';
 import '../widgets/recipe_form/tags_editor.dart';
@@ -30,10 +30,10 @@ class _AddEditRecipeScreenState extends State<AddEditRecipeScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeData();
+    _initializeFormControllers();
   }
 
-  void _initializeData() {
+  void _initializeFormControllers() {
     final recipe = widget.existingRecipe;
     _nameController = TextEditingController(text: recipe?.name ?? '');
     _imageUrlController = TextEditingController(text: recipe?.imageUrl ?? '');
@@ -42,14 +42,18 @@ class _AddEditRecipeScreenState extends State<AddEditRecipeScreen> {
       text: recipe != null ? recipe.prepTimeMinutes.toString() : '30',
     );
 
+    _initializeIngredientList(recipe);
+    
+    _selectedCategory = recipe?.category ?? globalAppCategories.first.name;
+    _tags = recipe != null ? List.from(recipe.tags) : [];
+  }
+
+  void _initializeIngredientList(Recipe? recipe) {
     if (recipe != null && recipe.ingredients.isNotEmpty) {
       _ingredientControllers = recipe.ingredients.map((i) => TextEditingController(text: i)).toList();
     } else {
       _ingredientControllers = List.generate(3, (_) => TextEditingController());
     }
-
-    _selectedCategory = recipe?.category ?? categories.first.name;
-    _tags = recipe != null ? List.from(recipe.tags) : [];
   }
 
   @override
@@ -58,49 +62,51 @@ class _AddEditRecipeScreenState extends State<AddEditRecipeScreen> {
     _imageUrlController.dispose();
     _instructionsController.dispose();
     _prepTimeController.dispose();
-    for (var c in _ingredientControllers) {
-      c.dispose();
+    for (final controller in _ingredientControllers) {
+      controller.dispose();
     }
     super.dispose();
   }
 
-  void _addIngredient() {
+  void _addNewIngredientField() {
     setState(() => _ingredientControllers.add(TextEditingController()));
   }
 
-  void _removeIngredient(int index) {
-    if (_ingredientControllers.length > 1) {
-      setState(() {
-        _ingredientControllers[index].dispose();
-        _ingredientControllers.removeAt(index);
-      });
-    }
+  void _removeIngredientField(int index) {
+    if (_ingredientControllers.length <= 1) return;
+    
+    setState(() {
+      _ingredientControllers[index].dispose();
+      _ingredientControllers.removeAt(index);
+    });
   }
 
-  void _addTag(String tag) {
-    if (!_tags.contains(tag)) {
+  void _toggleTag(String tag) {
+    if (_tags.contains(tag)) {
+      setState(() => _tags.remove(tag));
+    } else {
       setState(() => _tags.add(tag));
     }
   }
 
-  void _removeTag(String tag) {
-    setState(() => _tags.remove(tag));
-  }
-
-  void _onSave() {
+  void _handleSubmit() {
     if (!_formKey.currentState!.validate()) return;
 
-    final ingredients = _ingredientControllers
+    final processedIngredients = _ingredientControllers
         .map((c) => c.text.trim())
         .where((text) => text.isNotEmpty)
         .toList();
 
+    _validateAndSubmit(processedIngredients);
+  }
+
+  void _validateAndSubmit(List<String> ingredients) {
     if (ingredients.isEmpty) {
-      _showSnackBar('Please add at least one ingredient', Colors.red);
+      _showFeedbackMessage('Please add at least one ingredient', Colors.red);
       return;
     }
 
-    final recipe = Recipe(
+    final finalRecipe = Recipe(
       id: widget.existingRecipe?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
       name: _nameController.text.trim(),
       imageUrl: _imageUrlController.text.trim().isEmpty
@@ -111,40 +117,45 @@ class _AddEditRecipeScreenState extends State<AddEditRecipeScreen> {
       instructions: _instructionsController.text.trim(),
       tags: _tags,
       prepTimeMinutes: int.tryParse(_prepTimeController.text) ?? 30,
+      creatorEmail: widget.existingRecipe?.creatorEmail,
     );
 
-    Navigator.pop(context, recipe);
+    Navigator.pop(context, finalRecipe);
   }
 
-  void _showSnackBar(String message, Color bgColor) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: bgColor));
+  void _showFeedbackMessage(String message, Color bgColor) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: bgColor),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
 
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Recipe' : 'Add New Recipe', style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(_isEditing ? 'Edit Recipe' : 'Add Recipe', style: const TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: scheme.primary,
         foregroundColor: scheme.onPrimary,
         actions: [
-          IconButton(onPressed: _onSave, icon: const Icon(Icons.check)),
+          IconButton(onPressed: _handleSubmit, icon: const Icon(Icons.check)),
         ],
       ),
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               RecipeInputField(
                 label: 'Recipe Name',
-                hint: 'e.g. Chicken Pasta',
+                hint: 'e.g. Grandma\'s Pasta',
                 controller: _nameController,
-                validator: (v) => v != null && v.trim().isEmpty ? 'Enter a name' : null,
+                validator: (value) => value?.trim().isEmpty ?? true ? 'Enter a name' : null,
               ),
               RecipeInputField(
                 label: 'Image URL (optional)',
@@ -152,29 +163,29 @@ class _AddEditRecipeScreenState extends State<AddEditRecipeScreen> {
                 controller: _imageUrlController,
                 keyboardType: TextInputType.url,
               ),
-              _buildCategoryDropdown(scheme),
+              _buildCategorySelector(scheme),
               RecipeInputField(
                 label: 'Prep Time (minutes)',
                 hint: '30',
                 controller: _prepTimeController,
                 keyboardType: TextInputType.number,
-                validator: (v) => v == null || int.tryParse(v) == null ? 'Enter minutes' : null,
+                validator: (value) => int.tryParse(value ?? '') == null ? 'Enter valid minutes' : null,
               ),
               IngredientsEditor(
                 controllers: _ingredientControllers,
-                onAdd: _addIngredient,
-                onRemove: _removeIngredient,
+                onAdd: _addNewIngredientField,
+                onRemove: _removeIngredientField,
               ),
-              TagsEditor(tags: _tags, onAdd: _addTag, onRemove: _removeTag),
+              TagsEditor(tags: _tags, onAdd: (tag) => _toggleTag(tag), onRemove: (tag) => _toggleTag(tag)),
               RecipeInputField(
-                label: 'Instructions',
-                hint: 'Step 1: ...',
+                label: 'Cooking Instructions',
+                hint: '1. Prepare oven...',
                 controller: _instructionsController,
                 maxLines: 6,
-                validator: (v) => v != null && v.trim().isEmpty ? 'Enter instructions' : null,
+                validator: (value) => value?.trim().isEmpty ?? true ? 'Enter instructions' : null,
               ),
-              const SizedBox(height: 20),
-              _buildSaveButton(scheme),
+              const SizedBox(height: 32),
+              _buildStickySaveButton(scheme),
             ],
           ),
         ),
@@ -182,45 +193,53 @@ class _AddEditRecipeScreenState extends State<AddEditRecipeScreen> {
     );
   }
 
-  Widget _buildCategoryDropdown(ColorScheme scheme) {
+  Widget _buildCategorySelector(ColorScheme scheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Category', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
             color: scheme.surface,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.grey.shade300),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: _selectedCategory,
               isExpanded: true,
-              items: categories.map((cat) => DropdownMenuItem(value: cat.name, child: Text('${cat.emoji}  ${cat.name}'))).toList(),
-              onChanged: (v) => v != null ? setState(() => _selectedCategory = v) : null,
+              borderRadius: BorderRadius.circular(16),
+              items: globalAppCategories
+                  .map((category) => DropdownMenuItem(
+                        value: category.name,
+                        child: Text('${category.emoji}  ${category.name}'),
+                      ))
+                  .toList(),
+              onChanged: (selection) => selection != null ? setState(() => _selectedCategory = selection) : null,
             ),
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
       ],
     );
   }
 
-  Widget _buildSaveButton(ColorScheme scheme) {
+  Widget _buildStickySaveButton(ColorScheme scheme) {
     return SizedBox(
       width: double.infinity,
-      height: 54,
+      height: 56,
       child: ElevatedButton.icon(
-        onPressed: _onSave,
-        icon: const Icon(Icons.save),
-        label: Text(_isEditing ? 'Update Recipe' : 'Save Recipe', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+        onPressed: _handleSubmit,
+        icon: const Icon(Icons.save_rounded),
+        label: Text(_isEditing ? 'Update Recipe' : 'Persist Recipe', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         style: ElevatedButton.styleFrom(
           backgroundColor: scheme.primary,
           foregroundColor: scheme.onPrimary,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 4,
+          shadowColor: scheme.primary.withAlpha(100),
         ),
       ),
     );

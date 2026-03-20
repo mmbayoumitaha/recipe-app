@@ -16,26 +16,28 @@ class OnboardingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildImageSection(),
+          _buildImageSection(themeColor),
           const SizedBox(height: 60),
-          _buildTextSection(),
+          _buildTextSection(scheme),
         ],
       ),
     );
   }
 
-  Widget _buildImageSection() {
+  Widget _buildImageSection(Color color) {
     return Container(
       height: 300,
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: themeColor.withAlpha(20),
+            color: color.withValues(alpha: 0.1),
             blurRadius: 30,
             spreadRadius: 10,
           ),
@@ -46,33 +48,33 @@ class OnboardingPage extends StatelessWidget {
         child: Image.asset(
           imagePath,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _buildFallbackIcon(),
+          errorBuilder: (context, error, stackTrace) => _buildFallbackIcon(color),
         ),
       ),
     );
   }
 
-  Widget _buildFallbackIcon() {
+  Widget _buildFallbackIcon(Color color) {
     return Container(
       padding: const EdgeInsets.all(60),
       decoration: BoxDecoration(
-        color: themeColor.withAlpha(20),
+        color: color.withValues(alpha: 0.15),
         shape: BoxShape.circle,
       ),
-      child: Icon(Icons.restaurant_menu, size: 80, color: themeColor),
+      child: Icon(Icons.restaurant_menu, size: 80, color: color),
     );
   }
 
-  Widget _buildTextSection() {
+  Widget _buildTextSection(ColorScheme scheme) {
     return Column(
       children: [
         Text(
           title,
           textAlign: TextAlign.center,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: scheme.onSurface,
             letterSpacing: -0.5,
           ),
         ),

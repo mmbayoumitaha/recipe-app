@@ -1,22 +1,21 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive/hive.dart';
+import '../../data/repositories/auth_repository.dart';
 import '../../models/app_user.dart';
 import 'login_state.dart';
 
 class LoginCubit extends Cubit<LoginState> {
-  LoginCubit() : super(const LoginState());
+  final AuthRepository _authRepository;
 
-  Box<AppUser> get _usersBox => Hive.box<AppUser>('users');
-  Box get _authBox => Hive.box('auth');
+  LoginCubit({required AuthRepository authRepository})
+      : _authRepository = authRepository,
+        super(const LoginState());
 
-  void toggleLoginMode() {
-    emit(
-      state.copyWith(
-        isLogin: !state.isLogin,
-        status: LoginStatus.initial,
-        clearErrorMessage: true,
-      ),
-    );
+  void toggleMode() {
+    emit(state.copyWith(
+      isLogin: !state.isLogin,
+      status: LoginStatus.initial,
+      clearErrorMessage: true,
+    ));
   }
 
   void togglePasswordVisibility() {
@@ -28,66 +27,53 @@ class LoginCubit extends Cubit<LoginState> {
     emit(state.copyWith(status: LoginStatus.loading, clearErrorMessage: true));
 
     if (state.isLogin) {
-      await _login(email: normalizedEmail, password: password);
-      return;
+      return _processLogin(normalizedEmail, password);
     }
-
-    await _signUp(email: normalizedEmail, password: password);
+    return _processRegistration(normalizedEmail, password);
   }
 
-  Future<void> _signUp({
-    required String email,
-    required String password,
-  }) async {
-    final existingUser = _usersBox.get(email);
+  Future<void> _processRegistration(String email, String password) async {
+    final existingUser = await _authRepository.getUser(email);
     if (existingUser != null) {
-      emit(
-        state.copyWith(
-          status: LoginStatus.failure,
-          errorMessage: 'Account already exists',
-        ),
-      );
+      emit(state.copyWith(
+        status: LoginStatus.failure,
+        errorMessage: 'Account already exists',
+      ));
       return;
     }
 
-    final user = AppUser(email: email, password: password);
-    await _usersBox.put(email, user);
-    await _authBox.put('loggedIn', true);
-    await _authBox.put('email', email);
+    final newUser = AppUser(email: email, password: password);
+    await _authRepository.registerUser(newUser);
+    _authRepository.login(email);
 
     emit(state.copyWith(status: LoginStatus.success));
   }
 
-  Future<void> _login({required String email, required String password}) async {
-    final user = _usersBox.get(email);
+  Future<void> _processLogin(String email, String password) async {
+    final user = await _authRepository.getUser(email);
+    
     if (user == null) {
-      emit(
-        state.copyWith(
-          status: LoginStatus.failure,
-          errorMessage: 'Account not found',
-        ),
-      );
+      emit(state.copyWith(
+        status: LoginStatus.failure,
+        errorMessage: 'Account not found',
+      ));
       return;
     }
 
     if (user.password != password) {
-      emit(
-        state.copyWith(
-          status: LoginStatus.failure,
-          errorMessage: 'Incorrect password',
-        ),
-      );
+      emit(state.copyWith(
+        status: LoginStatus.failure,
+        errorMessage: 'Incorrect password',
+      ));
       return;
     }
 
-    await _authBox.put('loggedIn', true);
-    await _authBox.put('email', email);
+    _authRepository.login(email);
     emit(state.copyWith(status: LoginStatus.success));
   }
 
-  Future<void> logout() async {
-    await _authBox.put('loggedIn', false);
-    await _authBox.delete('email');
-    emit(state.copyWith(status: LoginStatus.initial, clearErrorMessage: true));
+  void logout() {
+    _authRepository.logout();
+    emit(const LoginState(status: LoginStatus.initial));
   }
 }

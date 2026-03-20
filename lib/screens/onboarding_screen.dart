@@ -20,19 +20,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: 'Discover Recipes',
       description: 'Explore thousands of gourmet recipes from across the globe.',
       imagePath: 'assets/onboarding/discover.png',
-      color: const Color(0xFF6366F1),
+      color: const Color(0xFFFF8A65),
     ),
     OnboardingData(
       title: 'Master Your Cooking',
       description: 'Follow step-by-step guides to create professional-level meals.',
       imagePath: 'assets/onboarding/cook.png',
-      color: const Color(0xFFF59E0B),
+      color: const Color(0xFFFDD835),
     ),
     OnboardingData(
       title: 'Share the Joy',
       description: 'Create your own cookbook and share your culinary joy with others.',
       imagePath: 'assets/onboarding/share.png',
-      color: const Color(0xFFEF4444),
+      color: const Color(0xFFFFCC33),
     ),
   ];
 
@@ -43,10 +43,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _onNext() {
-    if (_pageController.page! < _pages.length - 1) {
-      _pageController.nextPage(
+    final currentPage = context.read<OnboardingCubit>().state.currentPage;
+    if (currentPage < _pages.length - 1) {
+      _pageController.animateToPage(
+        currentPage + 1,
         duration: const Duration(milliseconds: 600),
-        curve: Curves.fastOutSlowIn,
+        curve: Curves.easeInOutQuart,
       );
     } else {
       _onComplete();

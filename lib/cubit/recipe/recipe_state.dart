@@ -3,10 +3,12 @@ import '../../models/recipe.dart';
 
 class RecipeState extends Equatable {
   final List<Recipe> recipes;
+  final Set<String> favoriteIds;
   final String searchQuery;
 
   const RecipeState({
     this.recipes = const [],
+    this.favoriteIds = const {},
     this.searchQuery = '',
   });
 
@@ -18,16 +20,23 @@ class RecipeState extends Equatable {
         .toList();
   }
 
+  List<Recipe> get favoritedRecipes {
+    return recipes.where((r) => favoriteIds.contains(r.id)).toList();
+  }
+
   RecipeState copyWith({
     List<Recipe>? recipes,
+    Set<String>? favoriteIds,
     String? searchQuery,
   }) {
     return RecipeState(
       recipes: recipes ?? this.recipes,
+      favoriteIds: favoriteIds ?? this.favoriteIds,
       searchQuery: searchQuery ?? this.searchQuery,
     );
   }
 
   @override
-  List<Object?> get props => [recipes, searchQuery];
+  List<Object?> get props => [recipes, favoriteIds, searchQuery];
 }
+

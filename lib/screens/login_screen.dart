@@ -4,15 +4,18 @@ import '../cubit/login/login_cubit.dart';
 import '../cubit/login/login_state.dart';
 import '../widgets/login/login_header.dart';
 import '../widgets/login/login_form.dart';
-import 'home_screen.dart';
+import '../cubit/recipe/recipe_cubit.dart';
+import 'main_screen.dart';
 
 class LoginScreen extends StatelessWidget {
+
   const LoginScreen({super.key});
 
   void _handleAuthenticationState(BuildContext context, LoginState state) {
     if (state.status == LoginStatus.failure && state.errorMessage != null) {
       _showErrorSnackBar(context, state.errorMessage!);
     } else if (state.status == LoginStatus.success) {
+      context.read<RecipeCubit>().refresh();
       _navigateToHomeScreen(context);
     }
   }
@@ -29,9 +32,10 @@ class LoginScreen extends StatelessWidget {
   void _navigateToHomeScreen(BuildContext context) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
+      MaterialPageRoute(builder: (_) => const MainScreen()),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
