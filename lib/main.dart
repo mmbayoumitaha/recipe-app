@@ -20,7 +20,7 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
-  
+
   Hive.registerAdapter(RecipeAdapter());
   Hive.registerAdapter(AppUserAdapter());
 
@@ -29,15 +29,23 @@ Future<void> main() async {
   final authRepository = AuthRepository();
   final recipeRepository = RecipeRepository();
 
-  runApp(RecipeApp(
-    authRepository: authRepository,
-    recipeRepository: recipeRepository,
-  ));
+  runApp(
+    RecipeApp(
+      authRepository: authRepository,
+      recipeRepository: recipeRepository,
+    ),
+  );
 }
 
 Future<void> _initializeHiveBoxes() async {
-  final List<String> boxesToOpen = ['recipes', 'users', 'auth', 'favorites', 'settings'];
-  
+  final List<String> boxesToOpen = [
+    'recipes',
+    'users',
+    'auth',
+    'favorites',
+    'settings',
+  ];
+
   for (final boxName in boxesToOpen) {
     try {
       if (boxName == 'recipes') {
@@ -66,7 +74,7 @@ class RecipeApp extends StatelessWidget {
   final Widget? startScreen;
 
   const RecipeApp({
-    super.key, 
+    super.key,
     required this.authRepository,
     required this.recipeRepository,
     this.startScreen,
@@ -79,17 +87,26 @@ class RecipeApp extends StatelessWidget {
         BlocProvider(create: (_) => OnboardingCubit()),
         BlocProvider(create: (_) => ThemeCubit()),
         BlocProvider(create: (_) => LoginCubit(authRepository: authRepository)),
-        BlocProvider(create: (_) => RecipeCubit(
-          recipeRepository: recipeRepository,
-          authRepository: authRepository,
-        )),
+        BlocProvider(
+          create: (_) => RecipeCubit(
+            recipeRepository: recipeRepository,
+            authRepository: authRepository,
+          ),
+        ),
       ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, themeMode) {
           return MultiBlocListener(
             listeners: [
               BlocListener<LoginCubit, LoginState>(
-                listenWhen: (previous, current) => previous.status != current.status,
+                listenWhen: (previous, current) {
+                  if (previous.status == current.status) return false;
+                  if (current.status == LoginStatus.success) return true;
+                  if (previous.status == LoginStatus.success &&
+                      current.status == LoginStatus.initial)
+                    return true;
+                  return false;
+                },
                 listener: (context, state) {
                   if (state.status == LoginStatus.success) {
                     navigatorKey.currentState?.pushAndRemoveUntil(
@@ -97,7 +114,8 @@ class RecipeApp extends StatelessWidget {
                       (_) => false,
                     );
                     context.read<RecipeCubit>().loadUserContent();
-                  } else if (state.status == LoginStatus.initial && !authRepository.isLoggedIn()) {
+                  } else if (state.status == LoginStatus.initial &&
+                      !authRepository.isLoggedIn()) {
                     navigatorKey.currentState?.pushAndRemoveUntil(
                       MaterialPageRoute(builder: (_) => const LoginScreen()),
                       (_) => false,
@@ -106,7 +124,8 @@ class RecipeApp extends StatelessWidget {
                 },
               ),
               BlocListener<OnboardingCubit, OnboardingState>(
-                listenWhen: (previous, current) => previous.status != current.status,
+                listenWhen: (previous, current) =>
+                    previous.status != current.status,
                 listener: (context, state) {
                   if (state.status == OnboardingStatus.completed) {
                     navigatorKey.currentState?.pushAndRemoveUntil(
@@ -134,15 +153,15 @@ class RecipeApp extends StatelessWidget {
 
   Widget _determineInitialPage() {
     if (startScreen != null) return startScreen!;
-    
+
     if (!OnboardingCubit.isOnboardingCompleted()) {
       return const OnboardingScreen();
     }
-    
+
     if (authRepository.isLoggedIn()) {
       return const MainScreen();
     }
-    
+
     return const LoginScreen();
   }
 }
