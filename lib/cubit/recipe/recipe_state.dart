@@ -39,4 +39,3 @@ class RecipeState extends Equatable {
   @override
   List<Object?> get props => [recipes, favoriteIds, searchQuery];
 }
-

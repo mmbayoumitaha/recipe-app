@@ -89,6 +89,7 @@ class RecipeApp extends StatelessWidget {
           return MultiBlocListener(
             listeners: [
               BlocListener<LoginCubit, LoginState>(
+                listenWhen: (previous, current) => previous.status != current.status,
                 listener: (context, state) {
                   if (state.status == LoginStatus.success) {
                     navigatorKey.currentState?.pushAndRemoveUntil(
@@ -105,6 +106,7 @@ class RecipeApp extends StatelessWidget {
                 },
               ),
               BlocListener<OnboardingCubit, OnboardingState>(
+                listenWhen: (previous, current) => previous.status != current.status,
                 listener: (context, state) {
                   if (state.status == OnboardingStatus.completed) {
                     navigatorKey.currentState?.pushAndRemoveUntil(

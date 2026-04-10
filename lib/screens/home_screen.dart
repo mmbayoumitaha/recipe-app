@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/recipe/recipe_cubit.dart';
 import '../cubit/recipe/recipe_state.dart';
+import '../cubit/onboarding/onboarding_cubit.dart';
 import '../widgets/home/home_search_bar.dart';
 import '../widgets/home/categories_section.dart';
 import '../widgets/home/recipes_section.dart';
@@ -29,7 +30,7 @@ class HomeScreen extends StatelessWidget {
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
-                _buildAppBar(isDarkMode, scheme, theme),
+                _buildAppBar(context, isDarkMode, scheme, theme),
                 _buildHeaderSection(isSearching),
                 RecipesSection(
                   recipes: state.filteredRecipes,
@@ -44,10 +45,34 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAppBar(bool isDarkMode, ColorScheme scheme, ThemeData theme) {
+  Widget _buildAppBar(
+    BuildContext context,
+    bool isDarkMode,
+    ColorScheme scheme,
+    ThemeData theme,
+  ) {
     return SliverAppBar(
-      title: const Text('🍳 CookCraft', style: TextStyle(fontWeight: FontWeight.bold)),
-      backgroundColor: isDarkMode ? theme.scaffoldBackgroundColor : scheme.primary,
+      title: GestureDetector(
+        onLongPress: () async {
+          await context.read<OnboardingCubit>().resetOnboarding();
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Onboarding status has been reset!'),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+        },
+        child: const Text(
+          '🍳 CookCraft',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      backgroundColor: isDarkMode
+          ? theme.scaffoldBackgroundColor
+          : scheme.primary,
       foregroundColor: isDarkMode ? scheme.onSurface : Colors.white,
       floating: true,
       pinned: true,
@@ -61,9 +86,7 @@ class HomeScreen extends StatelessWidget {
       child: Column(
         children: [
           const HomeSearchBar(),
-          if (!isSearching) ...[
-            const CategoriesSection(),
-          ],
+          if (!isSearching) ...[const CategoriesSection()],
         ],
       ),
     );

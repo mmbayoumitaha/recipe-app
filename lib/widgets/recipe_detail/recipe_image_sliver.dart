@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/recipe.dart';
 
 class RecipeImageSliver extends StatelessWidget {
@@ -49,11 +51,21 @@ class RecipeImageSliver extends StatelessWidget {
           children: [
             Hero(
               tag: heroTag,
-              child: Image.network(
-                recipe.imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => _buildFallback(context, scheme),
-              ),
+              child: recipe.imageUrl.startsWith('http')
+                  ? CachedNetworkImage(
+                      imageUrl: recipe.imageUrl,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        color: Colors.black12,
+                        child: const Center(child: CircularProgressIndicator()),
+                      ),
+                      errorWidget: (context, url, error) => _buildFallback(context, scheme),
+                    )
+                  : Image.file(
+                      File(recipe.imageUrl),
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => _buildFallback(context, scheme),
+                    ),
             ),
             const DecoratedBox(
               decoration: BoxDecoration(

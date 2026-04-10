@@ -218,20 +218,21 @@ class _ProfileSettingsSection extends StatelessWidget {
   }
 
   void _showLogoutConfirmation(BuildContext context) {
+    final loginCubit = context.read<LoginCubit>();
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Logout'),
         content: const Text('Are you sure you want to log out?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
-              context.read<LoginCubit>().logout();
+              Navigator.pop(dialogContext);
+              loginCubit.logout();
             },
             child: const Text('Logout', style: TextStyle(color: Colors.red)),
           ),

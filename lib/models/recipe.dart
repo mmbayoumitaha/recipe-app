@@ -90,5 +90,3 @@ class RecipeAdapter extends TypeAdapter<Recipe> {
     writer.writeString(obj.creatorEmail ?? '');
   }
 }
-
-

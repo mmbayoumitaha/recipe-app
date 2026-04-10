@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../models/recipe.dart';
 
 class RecipeCard extends StatelessWidget {
@@ -81,13 +83,36 @@ class _RecipeImageOverlay extends StatelessWidget {
           tag: 'recipe-image-${recipe.id}${heroSuffix ?? ""}',
           child: ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            child: Image.network(
-              recipe.imageUrl,
-              height: 200,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => _buildFallbackImage(scheme),
-            ),
+            child: recipe.imageUrl.startsWith('http')
+                ? CachedNetworkImage(
+                    imageUrl: recipe.imageUrl,
+                    height: 200,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      height: 200,
+                      width: double.infinity,
+                      color: scheme.surfaceContainerHighest,
+                      child: Center(
+                        child: SizedBox(
+                          width: 30,
+                          height: 30,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: scheme.primary.withValues(alpha: 0.5),
+                          ),
+                        ),
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => _buildFallbackImage(scheme),
+                  )
+                : Image.file(
+                    File(recipe.imageUrl),
+                    height: 200,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => _buildFallbackImage(scheme),
+                  ),
           ),
         ),
         Positioned(

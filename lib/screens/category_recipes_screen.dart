@@ -2,28 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/recipe/recipe_cubit.dart';
 import '../cubit/recipe/recipe_state.dart';
-import '../models/recipe.dart';
 import '../widgets/recipe_card.dart';
 import '../widgets/common/empty_recipes_state.dart';
 import 'recipe_detail_screen.dart';
-import 'add_edit_recipe_screen.dart';
 
 class CategoryRecipesScreen extends StatelessWidget {
   final String categoryName;
 
   const CategoryRecipesScreen({super.key, required this.categoryName});
-
-  void _onEdit(BuildContext context, Recipe recipe) async {
-    final updatedRecipe = await Navigator.push<Recipe>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AddEditRecipeScreen(existingRecipe: recipe),
-      ),
-    );
-    if (updatedRecipe != null && context.mounted) {
-      context.read<RecipeCubit>().updateRecipe(updatedRecipe);
-    }
-  }
 
   void _onDelete(BuildContext context, String id) {
     showDialog(
@@ -90,7 +76,6 @@ class CategoryRecipesScreen extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (_) => RecipeDetailScreen(
                         recipe: recipe,
-                        onEdit: () => _onEdit(context, recipe),
                         heroTag: heroTag,
                       ),
                     ),

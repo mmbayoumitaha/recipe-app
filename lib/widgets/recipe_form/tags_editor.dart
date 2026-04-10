@@ -45,7 +45,6 @@ class _TagsEditorState extends State<TagsEditor> {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
           ),
         ),
         const SizedBox(height: 8),

@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../cubit/recipe/recipe_cubit.dart';
 import '../../cubit/recipe/recipe_state.dart';
 import '../../models/recipe.dart';
-import '../../screens/add_edit_recipe_screen.dart';
+
 import '../../screens/recipe_detail_screen.dart';
 import '../recipe_card.dart';
 
@@ -79,17 +79,18 @@ class RecipesSection extends StatelessWidget {
   }
 
   void _confirmDeletion(BuildContext context, String recipeId) {
+    final recipeCubit = context.read<RecipeCubit>();
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Recipe'),
         content: const Text('Are you sure you want to delete this recipe?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
-              context.read<RecipeCubit>().deleteRecipe(recipeId);
-              Navigator.pop(context);
+              recipeCubit.deleteRecipe(recipeId);
+              Navigator.pop(dialogContext);
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
@@ -98,27 +99,15 @@ class RecipesSection extends StatelessWidget {
     );
   }
 
-  Future<void> _navigateToDetail(BuildContext context, Recipe recipe, String heroTag) async {
+  void _navigateToDetail(BuildContext context, Recipe recipe, String heroTag) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => RecipeDetailScreen(
           recipe: recipe,
-          onEdit: () => _navigateToEdit(context, recipe),
           heroTag: heroTag,
         ),
       ),
     );
-  }
-
-  Future<void> _navigateToEdit(BuildContext context, Recipe recipe) async {
-    final updatedRecipe = await Navigator.push<Recipe>(
-      context,
-      MaterialPageRoute(builder: (_) => AddEditRecipeScreen(existingRecipe: recipe)),
-    );
-    
-    if (updatedRecipe != null && context.mounted) {
-      context.read<RecipeCubit>().updateRecipe(updatedRecipe);
-    }
   }
 }

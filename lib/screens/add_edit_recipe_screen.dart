@@ -1,3 +1,7 @@
+import 'dart:io';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import '../models/recipe.dart';
 import '../data/constants/app_categories.dart';
@@ -24,6 +28,7 @@ class _AddEditRecipeScreenState extends State<AddEditRecipeScreen> {
   late List<TextEditingController> _ingredientControllers;
   late String _selectedCategory;
   late List<String> _tags;
+  String? _localImagePath;
 
   bool get _isEditing => widget.existingRecipe != null;
 
@@ -46,6 +51,11 @@ class _AddEditRecipeScreenState extends State<AddEditRecipeScreen> {
     
     _selectedCategory = recipe?.category ?? globalAppCategories.first.name;
     _tags = recipe != null ? List.from(recipe.tags) : [];
+
+    if (recipe != null && !recipe.imageUrl.startsWith('http')) {
+      _localImagePath = recipe.imageUrl;
+      _imageUrlController.clear();
+    }
   }
 
   void _initializeIngredientList(Recipe? recipe) {
@@ -89,6 +99,22 @@ class _AddEditRecipeScreenState extends State<AddEditRecipeScreen> {
     }
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    
+    if (image != null) {
+      final directory = await getApplicationDocumentsDirectory();
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${p.basename(image.path)}';
+      final savedImage = await File(image.path).copy('${directory.path}/$fileName');
+      
+      setState(() {
+        _localImagePath = savedImage.path;
+        _imageUrlController.clear();
+      });
+    }
+  }
+
   void _handleSubmit() {
     if (!_formKey.currentState!.validate()) return;
 
@@ -106,12 +132,14 @@ class _AddEditRecipeScreenState extends State<AddEditRecipeScreen> {
       return;
     }
 
+    final finalImageUrl = _localImagePath ?? _imageUrlController.text.trim();
+
     final finalRecipe = Recipe(
       id: widget.existingRecipe?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
       name: _nameController.text.trim(),
-      imageUrl: _imageUrlController.text.trim().isEmpty
+      imageUrl: finalImageUrl.isEmpty
           ? 'https://images.unsplash.com/photo-1495195134817-aeb325a55b65?w=600'
-          : _imageUrlController.text.trim(),
+          : finalImageUrl,
       category: _selectedCategory,
       ingredients: ingredients,
       instructions: _instructionsController.text.trim(),
@@ -158,11 +186,22 @@ class _AddEditRecipeScreenState extends State<AddEditRecipeScreen> {
                 validator: (value) => value?.trim().isEmpty ?? true ? 'Enter a name' : null,
               ),
               RecipeInputField(
-                label: 'Image URL (optional)',
+                label: 'Image URL',
                 hint: 'https://...',
                 controller: _imageUrlController,
                 keyboardType: TextInputType.url,
+                onChanged: (val) {
+                  if (val.isNotEmpty && _localImagePath != null) {
+                    setState(() => _localImagePath = null);
+                  }
+                },
               ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Center(child: Text('OR', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey))),
+              ),
+              _buildImagePicker(scheme),
+              const SizedBox(height: 16),
               _buildCategorySelector(scheme),
               RecipeInputField(
                 label: 'Prep Time (minutes)',
@@ -241,6 +280,50 @@ class _AddEditRecipeScreenState extends State<AddEditRecipeScreen> {
           elevation: 4,
           shadowColor: scheme.primary.withAlpha(100),
         ),
+      ),
+    );
+  }
+
+  Widget _buildImagePicker(ColorScheme scheme) {
+    return GestureDetector(
+      onTap: _pickImage,
+      child: Container(
+        height: 160,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: _localImagePath != null ? scheme.primary : Colors.grey.shade300, width: 2),
+        ),
+        child: _localImagePath != null
+            ? Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: Image.file(File(_localImagePath!), height: 160, width: double.infinity, fit: BoxFit.cover),
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: GestureDetector(
+                      onTap: () => setState(() => _localImagePath = null),
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                        child: const Icon(Icons.close, color: Colors.white, size: 20),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_a_photo_outlined, size: 40, color: scheme.primary),
+                  const SizedBox(height: 8),
+                  const Text('Upload from Gallery', style: TextStyle(fontWeight: FontWeight.bold)),
+                ],
+              ),
       ),
     );
   }

@@ -35,4 +35,10 @@ class OnboardingCubit extends Cubit<OnboardingState> {
     final box = Hive.box('settings');
     return box.get('onboarding_completed', defaultValue: false);
   }
+
+  Future<void> resetOnboarding() async {
+    final box = Hive.box('settings');
+    await box.put('onboarding_completed', false);
+    emit(state.copyWith(status: OnboardingStatus.initial, currentPage: 0));
+  }
 }

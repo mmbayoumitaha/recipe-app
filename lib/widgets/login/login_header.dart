@@ -29,7 +29,7 @@ class LoginHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        Text(
+        const Text(
           'Your personal cookbook',
           style: TextStyle(
             fontSize: 16,

@@ -5,7 +5,7 @@ import '../cubit/recipe/recipe_state.dart';
 import '../models/recipe.dart';
 import '../widgets/recipe_card.dart';
 import 'recipe_detail_screen.dart';
-import 'add_edit_recipe_screen.dart';
+
 
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
@@ -91,20 +91,8 @@ class FavoritesScreen extends StatelessWidget {
         builder: (_) => RecipeDetailScreen(
           recipe: recipe,
           heroTag: heroTag,
-          onEdit: () => _navigateToEdit(context, recipe),
         ),
       ),
     );
-  }
-
-  Future<void> _navigateToEdit(BuildContext context, Recipe recipe) async {
-    final updatedRecipe = await Navigator.push<Recipe>(
-      context,
-      MaterialPageRoute(builder: (_) => AddEditRecipeScreen(existingRecipe: recipe)),
-    );
-    
-    if (updatedRecipe != null && context.mounted) {
-      context.read<RecipeCubit>().updateRecipe(updatedRecipe);
-    }
   }
 }

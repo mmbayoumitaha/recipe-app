@@ -32,7 +32,7 @@ class _MainScreenState extends State<MainScreen> {
       context,
       MaterialPageRoute(builder: (_) => const AddEditRecipeScreen()),
     );
-    
+
     if (newRecipe != null && context.mounted) {
       context.read<RecipeCubit>().addRecipe(newRecipe);
     }
@@ -43,10 +43,7 @@ class _MainScreenState extends State<MainScreen> {
     final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: _buildBottomNav(scheme),
       floatingActionButton: _currentIndex == 0 ? _buildFAB(scheme) : null,
     );
@@ -62,18 +59,18 @@ class _MainScreenState extends State<MainScreen> {
       showUnselectedLabels: true,
       backgroundColor: scheme.surface,
       elevation: 0,
-      items: const [
-        BottomNavigationBarItem(
+      items: [
+        const BottomNavigationBarItem(
           icon: Icon(Icons.home_outlined),
           activeIcon: Icon(Icons.home_filled),
           label: 'Home',
         ),
-        BottomNavigationBarItem(
+        const BottomNavigationBarItem(
           icon: Icon(Icons.favorite_outline_rounded),
           activeIcon: Icon(Icons.favorite_rounded),
           label: 'Favorites',
         ),
-        BottomNavigationBarItem(
+        const BottomNavigationBarItem(
           icon: Icon(Icons.person_outline_rounded),
           activeIcon: Icon(Icons.person_rounded),
           label: 'Profile',
@@ -88,7 +85,10 @@ class _MainScreenState extends State<MainScreen> {
       backgroundColor: scheme.primary,
       foregroundColor: scheme.onPrimary,
       icon: const Icon(Icons.add_rounded),
-      label: const Text('Add Recipe', style: TextStyle(fontWeight: FontWeight.bold)),
+      label: const Text(
+        'Add Recipe',
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
     );
   }
 }

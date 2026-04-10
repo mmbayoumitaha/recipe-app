@@ -14,12 +14,14 @@ class LoginForm extends StatefulWidget {
 class _LoginFormState extends State<LoginForm> {
   final _emailCtl = TextEditingController();
   final _passwordCtl = TextEditingController();
+  final _confirmPasswordCtl = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
     _emailCtl.dispose();
     _passwordCtl.dispose();
+    _confirmPasswordCtl.dispose();
     super.dispose();
   }
 
@@ -80,11 +82,17 @@ class _LoginFormState extends State<LoginForm> {
     return Column(
       children: [
         FormTextField(
-            controller: _emailCtl,
-            label: 'Email',
-            prefixIcon: Icons.email_outlined,
-            keyboardType: TextInputType.emailAddress,
-            validator: (v) => v == null || v.isEmpty ? 'Email is required' : null),
+          controller: _emailCtl,
+          label: 'Email',
+          prefixIcon: Icons.email_outlined,
+          keyboardType: TextInputType.emailAddress,
+          validator: (v) {
+            if (v == null || v.isEmpty) return 'Email is required';
+            final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+            if (!emailRegex.hasMatch(v)) return 'Please enter a valid email';
+            return null;
+          },
+        ),
         const SizedBox(height: 16),
         FormTextField(
           controller: _passwordCtl,
@@ -98,8 +106,27 @@ class _LoginFormState extends State<LoginForm> {
             ),
             onPressed: () => context.read<LoginCubit>().togglePasswordVisibility(),
           ),
-          validator: (v) => v == null || v.length < 4 ? 'Password too short' : null,
+          validator: (v) {
+            if (v == null || v.isEmpty) return 'Password is required';
+            if (v.length < 6) return 'Password must be at least 6 characters';
+            if (!v.contains(RegExp(r'[0-9]'))) return 'Password must contain at least one number';
+            return null;
+          },
         ),
+        if (!state.isLogin) ...[
+          const SizedBox(height: 16),
+          FormTextField(
+            controller: _confirmPasswordCtl,
+            label: 'Confirm Password',
+            prefixIcon: Icons.lock_reset_outlined,
+            obscureText: state.obscurePassword,
+            validator: (v) {
+              if (v == null || v.isEmpty) return 'Please confirm your password';
+              if (v != _passwordCtl.text) return 'Passwords do not match';
+              return null;
+            },
+          ),
+        ],
       ],
     );
   }
@@ -126,7 +153,10 @@ class _LoginFormState extends State<LoginForm> {
           style: TextStyle(color: scheme.onSurface.withValues(alpha: 0.6)),
         ),
         GestureDetector(
-          onTap: () => context.read<LoginCubit>().toggleMode(),
+          onTap: () {
+            _confirmPasswordCtl.clear();
+            context.read<LoginCubit>().toggleMode();
+          },
           child: Text(
             isLogin ? 'Sign Up' : 'Log In',
             style: TextStyle(color: scheme.primary, fontWeight: FontWeight.bold),

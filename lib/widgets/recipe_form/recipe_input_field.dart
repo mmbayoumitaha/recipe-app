@@ -7,6 +7,7 @@ class RecipeInputField extends StatelessWidget {
   final String? Function(String?)? validator;
   final TextInputType? keyboardType;
   final int maxLines;
+  final Function(String)? onChanged;
 
   const RecipeInputField({
     super.key,
@@ -16,6 +17,7 @@ class RecipeInputField extends StatelessWidget {
     this.validator,
     this.keyboardType,
     this.maxLines = 1,
+    this.onChanged,
   });
 
   @override
@@ -29,10 +31,10 @@ class RecipeInputField extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 8),
           child: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: scheme.onSurface,
             ),
           ),
         ),
@@ -63,6 +65,7 @@ class RecipeInputField extends StatelessWidget {
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
           validator: validator,
+          onChanged: onChanged,
         ),
         const SizedBox(height: 20),
       ],

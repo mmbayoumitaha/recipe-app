@@ -8,7 +8,6 @@ import '../cubit/recipe/recipe_cubit.dart';
 import 'main_screen.dart';
 
 class LoginScreen extends StatelessWidget {
-
   const LoginScreen({super.key});
 
   void _handleAuthenticationState(BuildContext context, LoginState state) {
@@ -35,7 +34,6 @@ class LoginScreen extends StatelessWidget {
       MaterialPageRoute(builder: (_) => const MainScreen()),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
