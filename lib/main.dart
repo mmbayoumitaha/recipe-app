@@ -103,8 +103,9 @@ class RecipeApp extends StatelessWidget {
                   if (previous.status == current.status) return false;
                   if (current.status == LoginStatus.success) return true;
                   if (previous.status == LoginStatus.success &&
-                      current.status == LoginStatus.initial)
+                      current.status == LoginStatus.initial) {
                     return true;
+                  }
                   return false;
                 },
                 listener: (context, state) {
